@@ -1,0 +1,88 @@
+<html>
+<head>
+ <title>Zip file</title>
+ <script src="./jszip.js" ></script>
+ <script src="./fileSaver.js" ></script>
+</head>
+<body>
+   <span>Select file:</span>
+   <div id="inputlist">
+     <input type="file" onchange="preparefile()" multiple  class="files" /> 
+     <p style="display:none;" id="hint">You can choose another files to add more files</p>
+     <hr>
+   </div>
+   <ul id="filelist"></ul>
+   <input type="text" placeholder="Compressed File Name" id="filename">
+   <br>
+   <br>
+   <button onclick="toZip()" > Compress selected files and download</button>
+ <script >
+    function preparefile() {
+      let files = document.getElementsByClassName("files")
+      let hint = document.getElementById('hint')
+      let filelist = document.getElementById('filelist')
+
+      hint.style.display = 'block'
+
+      let file = files[files.length - 1]
+      file.style.display = 'none'
+      for(let x = 0; x < file.files.length; x++) {
+        filelist.innerHTML += `<li>${file.files[x].name}</li>`
+      }
+      createInput()
+    }
+
+    function createInput() {
+      let input = document.createElement("input")
+      input.type = "file"
+      input.onchange = function() {preparefile()}
+      input.className = "files"
+      input.multiple = true
+
+      let inputlist = document.getElementById('inputlist')
+      inputlist.appendChild(input)
+    } 
+
+    function toZip(){
+      let filename = document.getElementById('filename')
+      if (filename.value === '') {
+        alert("please fill compressed file name")
+        return false
+      }
+      //file.files is a fileList object fileList is a file object
+      let file = document.getElementsByClassName("files")		 
+      
+      //File read successfully. Package the file into zip
+		  let zip = new JSZip()
+      // Add the file that needs to be compressed file object
+      for(let i = 0; i < file.length; i++) {
+        for(let x = 0; x < file[i].files.length; x++) {
+          zip.file(file[i].files[x].name, file[i].files[x])
+        }
+      }
+		  
+		  //return promise object This method is an asynchronous method.
+		  zip.generateAsync({type:"Blob",compression: "DEFLATE"}).then(function(content) {			 
+      
+        //download
+        let formData = new FormData()
+        formData.append("blob",content)
+        saveAs(content, `${filename.value}.zip`)
+      
+        //reset 
+        let inputlist = document.getElementById('inputlist')
+        let filelist = document.getElementById('filelist')
+        let hint = document.getElementById('hint')
+
+        inputlist.innerHTML = ''
+        filelist.innerHTML = ''
+        filename.value = ''
+        hint.style.display = 'none'
+        createInput()
+      });
+      
+	  
+	}
+ </script>
+<body>
+<html>
